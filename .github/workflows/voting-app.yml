@@ -53,12 +53,11 @@ jobs:
           docker push $IMAGE_NAME
           echo "SEED_IMAGE=$IMAGE_NAME" >> $GITHUB_ENV
 
-     # Step 7: Set up kubeconfig from secret
+      # Step 7: Set up kubeconfig from secret
       - name: Set up kubeconfig
         run: |
-            mkdir -p $HOME/.kube
-            echo "${{ secrets.KUBECONFIG_B64 }}" > $HOME/.kube/config
-
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
 
       # Step 8: Deploy to AKS
       - name: Deploy to AKS
@@ -68,5 +67,5 @@ jobs:
           kubectl set image deployment/worker worker=$WORKER_IMAGE --namespace=default || true
           kubectl set image deployment/seed-data seed-data=$SEED_IMAGE --namespace=default || true
 
-          # Apply manifests if needed (optional)
+          # Apply manifests if needed
           kubectl apply -f k8s/
