@@ -1,33 +1,78 @@
-name: CI/CD Pipeline with Kubeconfig
+name: Deploy Voting App to AKS
 
 on:
   push:
-    branches: [ feature/github-actions ]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Docker
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      # Step 2: Log in to DockerHub
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push Docker image
-      run: |
-        IMAGE_NAME=rishabhraj7/voting-app:${{ github.sha }}
-        docker build -t $IMAGE_NAME .
-        docker push $IMAGE_NAME
-        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+      # Step 3: Build & push Vote service
+      - name: Build and push Vote service
+        run: |
+          IMAGE_NAME=rishabhraj7/voting-app-vote:${{ github.sha }}
+          docker build -t $IMAGE_NAME -f vote/Dockerfile vote/
+          docker push $IMAGE_NAME
+          echo "VOTE_IMAGE=$IMAGE_NAME" >> $GITHUB_ENV
 
-    - name: Set up kubeconfig
-      run: |
-        echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
+      # Step 4: Build & push Result service
+      - name: Build and push Result service
+        run: |
+          IMAGE_NAME=rishabhraj7/voting-app-result:${{ github.sha }}
+          docker build -t $IMAGE_NAME -f result/Dockerfile result/
+          docker push $IMAGE_NAME
+          echo "RESULT_IMAGE=$IMAGE_NAME" >> $GITHUB_ENV
 
-    - name: Deploy to AKS
-      run: |
-        kubectl set image deployment/voting-app voting-app=${{ env.IMAGE_NAME }} --record
-        kubectl rollout status deployment/voting-app
+      # Step 5: Build & push Worker service
+      - name: Build and push Worker service
+        run: |
+          IMAGE_NAME=rishabhraj7/voting-app-worker:${{ github.sha }}
+          docker build -t $IMAGE_NAME -f worker/Dockerfile worker/
+          docker push $IMAGE_NAME
+          echo "WORKER_IMAGE=$IMAGE_NAME" >> $GITHUB_ENV
+
+      # Step 6: Build & push Seed-Data service
+      - name: Build and push Seed-Data service
+        run: |
+          IMAGE_NAME=rishabhraj7/voting-app-seed:${{ github.sha }}
+          docker build -t $IMAGE_NAME -f seed-data/Dockerfile seed-data/
+          docker push $IMAGE_NAME
+          echo "SEED_IMAGE=$IMAGE_NAME" >> $GITHUB_ENV
+
+      # Step 7: Set up kubectl with AKS kubeconfig
+      - name: Set up AKS kubeconfig
+        run: |
+          az login --service-principal \
+            -u ${{ secrets.AZURE_CLIENT_ID }} \
+            -p ${{ secrets.AZURE_CLIENT_SECRET }} \
+            --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+          az aks get-credentials \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      # Step 8: Deploy to AKS
+      - name: Deploy to AKS
+        run: |
+          kubectl set image deployment/vote vote=$VOTE_IMAGE --namespace=default || true
+          kubectl set image deployment/result result=$RESULT_IMAGE --namespace=default || true
+          kubectl set image deployment/worker worker=$WORKER_IMAGE --namespace=default || true
+          kubectl set image deployment/seed-data seed-data=$SEED_IMAGE --namespace=default || true
+
+          # Apply manifests if needed (optional)
+          kubectl apply -f k8s/
