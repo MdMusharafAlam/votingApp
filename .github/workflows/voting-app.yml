@@ -67,9 +67,9 @@ jobs:
       # Step 9: Update Deployments with new images
       - name: Deploy to AKS
         run: |
-          kubectl set image deployment/vote-deployment vote=$VOTE_IMAGE --namespace=default || true
-          kubectl set image deployment/result-deployment result=$RESULT_IMAGE --namespace=default || true
-          kubectl set image deployment/worker-deployment worker=$WORKER_IMAGE --namespace=default || true
+          kubectl set image deployment/vote vote=$VOTE_IMAGE --namespace=default || true
+          kubectl set image deployment/result result=$RESULT_IMAGE --namespace=default || true
+          kubectl set image deployment/worker worker=$WORKER_IMAGE --namespace=default || true
        #   kubectl set image deployment/seed-deployment seed-data=$SEED_IMAGE --namespace=default || true
 
       # Step 10: Verify rollout
