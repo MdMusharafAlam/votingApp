@@ -75,7 +75,7 @@ jobs:
       # Step 10: Verify rollout
       - name: Verify Deployment Rollouts
         run: |
-          kubectl rollout status deployment/vote-deployment --namespace=default
-          kubectl rollout status deployment/result-deployment --namespace=default
-          kubectl rollout status deployment/worker-deployment --namespace=default
+          kubectl rollout status deployment/vote --namespace=default
+          kubectl rollout status deployment/result --namespace=default
+          kubectl rollout status deployment/worker --namespace=default
        #   kubectl rollout status deployment/seed-deployment --namespace=default
