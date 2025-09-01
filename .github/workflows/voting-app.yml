@@ -68,4 +68,4 @@ jobs:
           kubectl set image deployment/seed-data seed-data=$SEED_IMAGE --namespace=default || true
 
           # Apply manifests if needed
-          kubectl apply -f k8s/
+          kubectl apply -f k8s-specifications/
