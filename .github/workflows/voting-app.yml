@@ -2,7 +2,7 @@ name: CI/CD Pipeline with Kubeconfig
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feature/github-actions ]
 
 jobs:
   build-and-deploy:
