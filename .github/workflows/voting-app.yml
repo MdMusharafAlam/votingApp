@@ -3,7 +3,7 @@ name: Deploy Voting App to AKS
 on:
   push:
     branches:
-      - main
+      - feature/github-actions
 
 jobs:
   build-and-deploy:
