@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - 'README.md'
       - 'docs/**'
+  workflow_dispatch:
+    
 
 jobs:
   build-and-deploy:
