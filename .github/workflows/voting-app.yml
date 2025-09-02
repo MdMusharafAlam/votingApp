@@ -59,7 +59,7 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
 
-      # Step 8: Apply manifests (creates services + deployments if not exist)
+      # Step 8: Apply manifests
       - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f k8s-specifications/
@@ -70,12 +70,10 @@ jobs:
           kubectl set image deployment/vote vote=$VOTE_IMAGE --namespace=default || true
           kubectl set image deployment/result result=$RESULT_IMAGE --namespace=default || true
           kubectl set image deployment/worker worker=$WORKER_IMAGE --namespace=default || true
-       #   kubectl set image deployment/seed-deployment seed-data=$SEED_IMAGE --namespace=default || true
-
+       
       # Step 10: Verify rollout
       - name: Verify Deployment Rollouts
         run: |
           kubectl rollout status deployment/vote --namespace=default
           kubectl rollout status deployment/result --namespace=default
           kubectl rollout status deployment/worker --namespace=default
-       #   kubectl rollout status deployment/seed-deployment --namespace=default
