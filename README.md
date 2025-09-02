@@ -1,65 +1,35 @@
-# Example Voting App
+# Voting App Deployment (GitHub Actions + AKS)
 
-A simple distributed application running across multiple Docker containers.
+This project demonstrates deploying a **microservices-based Voting App** to Azure Kubernetes Service (AKS) using **GitHub Actions CI/CD pipeline**.
 
-## Getting started
+---
 
-Download [Docker Desktop](https://www.docker.com/products/docker-desktop) for Mac or Windows. [Docker Compose](https://docs.docker.com/compose) will be automatically installed. On Linux, make sure you have the latest version of [Compose](https://docs.docker.com/compose/install/).
+## CI/CD Pipeline Flow
 
-This solution uses Python, Node.js, .NET, with Redis for messaging and Postgres for storage.
+The pipeline builds Docker images, pushes them to DockerHub, and deploys them to AKS.
 
-Run in this directory to build and run the app:
+![CI/CD Flow](docs/ci-cd-flow.png)
 
-```shell
-docker compose up
-```
+---
 
-The `vote` app will be running at [http://localhost:9000](http://localhost:9000), and the `results` will be at [http://localhost:8081](http://localhost:8081).
+## Voting App Architecture
 
-Alternately, if you want to run it on a [Docker Swarm](https://docs.docker.com/engine/swarm/), first make sure you have a swarm. If you don't, run:
+The Voting App has 5 components:
+- **Vote Service**: Frontend where users cast votes.
+- **Result Service**: Frontend showing results.
+- **Worker Service**: Moves votes from Redis → Postgres.
+- **Seed-Data Job**: Initializes Postgres with schema/data.
+- **Redis + Postgres**: Queue + Database.
 
-```shell
-docker swarm init
-```
+![Voting App Architecture](docs/architecture-flow.png)
 
-Once you have your swarm, in this directory run:
+---
 
-```shell
-docker stack deploy --compose-file docker-stack.yml vote
-```
+## Workflow Summary
 
-## Run the app in Kubernetes
-
-The folder k8s-specifications contains the YAML specifications of the Voting App's services.
-
-Run the following command to create the deployments and services. Note it will create these resources in your current namespace (`default` if you haven't changed it.)
-
-```shell
-kubectl create -f k8s-specifications/
-```
-
-The `vote` web app is then available on port 31000 on each host of the cluster, the `result` web app is available on port 31001.
-
-To remove them, run:
-
-```shell
-kubectl delete -f k8s-specifications/
-```
-
-## Architecture
-
-![Architecture diagram](architecture.excalidraw.png)
-
-* A front-end web app in [Python](/vote) which lets you vote between two options
-* A [Redis](https://hub.docker.com/_/redis/) which collects new votes
-* A [.NET](/worker/) worker which consumes votes and stores them in…
-* A [Postgres](https://hub.docker.com/_/postgres/) database backed by a Docker volume
-* A [Node.js](/result) web app which shows the results of the voting in real time
-
-## Notes
-
-The voting application only accepts one vote per client browser. It does not register additional votes if a vote has already been submitted from a client.
-
-This isn't an example of a properly architected perfectly designed distributed app... it's just a simple
-example of the various types of pieces and languages you might see (queues, persistent data, etc), and how to
-deal with them in Docker at a basic level.
+1. Code pushed to GitHub → triggers GitHub Actions.
+2. Docker images for Vote, Result, Worker, and Seed-Data are built and pushed to DockerHub.
+3. GitHub Actions updates the AKS cluster with new images.
+4. The cluster pulls images and runs them as Pods.
+5. The Worker service ensures votes flow from Redis → Postgres.
+6. Result service displays live vote counts.
