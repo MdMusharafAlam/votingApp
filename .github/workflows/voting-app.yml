@@ -4,14 +4,10 @@ on:
   push:
     branches:
       - feature/github-actions
-    paths-ignore:
-      - 'README.md'
-      - 'docs/**'
-  workflow_dispatch:
     
-
 jobs:
   build-and-deploy:
+    if: ${{ github.event.head_commit.message != '[skip ci]' }}
     runs-on: ubuntu-latest
 
     steps:
