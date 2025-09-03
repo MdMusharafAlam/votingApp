@@ -19,5 +19,5 @@ spec:
         operator: "Exists"
         effect: "NoSchedule"
       containers:
-      - image: dockersamples/examplevotingapp_worker
+      - image: rishabhraj7/worker:latest
         name: worker
