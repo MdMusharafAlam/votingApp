@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "voting-app"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Downloading source code from GitHub...'
+                checkout scm
+            }
+        }
+
+        stage('Verify Docker') {
+            steps {
+                bat 'docker --version'
+                bat 'docker ps'
+            }
+        }
+
+        stage('Build Vote Image') {
+            steps {
+                dir('vote') {
+                    bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                }
+            }
+        }
+
+        stage('List Images') {
+            steps {
+                bat 'docker images'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Docker image created successfully.'
+        }
+
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
