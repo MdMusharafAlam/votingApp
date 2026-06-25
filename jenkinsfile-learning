@@ -70,7 +70,11 @@ pipeline {
                 bat 'docker push %DOCKERHUB_USER%/seed-data:v1'
             }
         }
-
+stage('Deploy') {
+    steps {
+        bat 'docker compose -f docker-compose.yml up -d'
+    }
+}
         stage('Verify Docker Access') {
             steps {
                 bat 'docker ps'
