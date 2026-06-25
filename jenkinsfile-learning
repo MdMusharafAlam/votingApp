@@ -2,48 +2,94 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "voting-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKERHUB_USER = '8787490748'
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                echo 'Downloading source code from GitHub...'
                 checkout scm
             }
         }
 
-        stage('Verify Docker') {
+        stage('Verify Repository') {
             steps {
-                bat 'docker --version'
-                bat 'docker ps'
+                bat 'dir'
             }
         }
 
         stage('Build Vote Image') {
             steps {
-                dir('vote') {
-                    bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                bat 'docker build -t %DOCKERHUB_USER%/vote:v1 .\\vote'
+            }
+        }
+
+        stage('Build Result Image') {
+            steps {
+                bat 'docker build -t %DOCKERHUB_USER%/result:v1 .\\result'
+            }
+        }
+
+        stage('Build Worker Image') {
+            steps {
+                bat 'docker build -t %DOCKERHUB_USER%/worker:v1 .\\worker'
+            }
+        }
+
+        stage('Build Seed Data Image') {
+            steps {
+                bat 'docker build -t %DOCKERHUB_USER%/seed-data:v1 .\\seed-data'
+            }
+        }
+
+        stage('Verify Images') {
+            steps {
+                bat 'docker images'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'voterapp_credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
                 }
             }
         }
 
-        stage('List Images') {
+        stage('Push Images') {
             steps {
-                bat 'docker images'
+                bat 'docker push %DOCKERHUB_USER%/vote:v1'
+                bat 'docker push %DOCKERHUB_USER%/result:v1'
+                bat 'docker push %DOCKERHUB_USER%/worker:v1'
+                bat 'docker push %DOCKERHUB_USER%/seed-data:v1'
+            }
+        }
+
+        stage('Verify Docker Access') {
+            steps {
+                bat 'docker ps'
             }
         }
     }
 
     post {
         success {
-            echo 'Docker image created successfully.'
+            echo 'Pipeline completed successfully and images pushed to Docker Hub!'
         }
 
         failure {
-            echo 'Pipeline failed.'
+            echo 'Pipeline Failed!'
+        }
+
+        always {
+            bat 'docker logout'
+            echo 'Pipeline Execution Completed'
         }
     }
 }
