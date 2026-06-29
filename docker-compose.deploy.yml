@@ -1,0 +1,81 @@
+# docker-compose.deploy.yml
+
+services:
+  vote:
+    image: 8787490748/vote:v1
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "9000:80"
+    restart: unless-stopped
+    networks:
+      - front-tier
+      - back-tier
+
+  result:
+    image: 8787490748/result:v1
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    networks:
+      - front-tier
+      - back-tier
+
+  worker:
+    image: 8787490748/worker:v1
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - back-tier
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - "./healthchecks:/healthchecks"
+    healthcheck:
+      test: /healthchecks/redis.sh
+      interval: 5s
+    restart: unless-stopped
+    networks:
+      - back-tier
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - "./healthchecks:/healthchecks"
+    healthcheck:
+      test: /healthchecks/postgres.sh
+      interval: 5s
+    restart: unless-stopped
+    networks:
+      - back-tier
+
+  seed:
+    image: 8787490748/seed-data:v1
+    profiles:
+      - seed
+    depends_on:
+      vote:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - front-tier
+
+volumes:
+  db-data:
+
+networks:
+  front-tier:
+  back-tier:
