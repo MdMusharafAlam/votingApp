@@ -39,29 +39,7 @@ stage('Run Tests') {
     }
 }
 
-stage('Build Vote Image') {
-    steps {
-        bat 'docker build -t %DOCKERHUB_USER%/vote:v1 .\\vote'
-    }
-}
 
-stage('Build Result Image') {
-    steps {
-        bat 'docker build -t %DOCKERHUB_USER%/result:v1 .\\result'
-    }
-}
-
-stage('Build Worker Image') {
-    steps {
-        bat 'docker build -t %DOCKERHUB_USER%/worker:v1 .\\worker'
-    }
-}
-
-stage('Build Seed Data Image') {
-    steps {
-        bat 'docker build -t %DOCKERHUB_USER%/seed-data:v1 .\\seed-data'
-    }
-}
 
         stage('Build Vote Image') {
             steps {
