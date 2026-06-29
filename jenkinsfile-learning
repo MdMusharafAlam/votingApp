@@ -18,11 +18,7 @@ pipeline {
                 bat 'dir'
             }
         }
-        stage('Verify Repository') {
-    steps {
-        bat 'dir'
-    }
-}
+        
 
 // Paste the testing stage here
 stage('Run Tests') {
