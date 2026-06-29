@@ -4,9 +4,8 @@
 
 services:
   vote:
-    build: 
-      context: ./vote
-      target: dev
+  image: 8787490748/vote:v1
+
     depends_on:
       redis:
         condition: service_healthy
@@ -27,7 +26,7 @@ services:
       - back-tier
 
   result:
-    build: ./result
+  image: 8787490748/result:v1
     # use nodemon rather than node for local dev
     entrypoint: nodemon --inspect=0.0.0.0 server.js
     depends_on:
@@ -45,8 +44,7 @@ services:
       - back-tier
 
   worker:
-    build:
-      context: ./worker
+  image: 8787490748/worker:v1
     depends_on:
       redis:
         condition: service_healthy 
@@ -89,7 +87,7 @@ services:
   # it won't run unless you specify the "seed" profile
   # docker compose --profile seed up -d
   seed:
-    build: ./seed-data
+  image: 8787490748/seed-data:v1
     profiles: ["seed"]
     depends_on:
       vote:
