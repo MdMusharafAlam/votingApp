@@ -86,11 +86,11 @@ stage('Run Tests') {
             }
         }
 
-        stage('Deploy Application') {
+       stage('Deploy Application') {
     steps {
-        bat 'docker compose down'
-        bat 'docker compose pull'
-        bat 'docker compose up -d'
+        bat 'docker compose -f docker-compose.deploy.yml down'
+        bat 'docker compose -f docker-compose.deploy.yml pull'
+        bat 'docker compose -f docker-compose.deploy.yml up -d'
     }
 }
 
