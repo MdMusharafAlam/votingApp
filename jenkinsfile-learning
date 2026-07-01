@@ -89,12 +89,7 @@ stage('Run Tests') {
      stage('Deploy to EC2') {
     steps {
         bat '''
-        ssh -i "C:\\Jenkins\\key\\key\\myserver.pem" -o StrictHostKeyChecking=no ec2-user@54.81.183.64 ^
-        "cd ~/votingApp && ^
-        git pull origin main && ^
-        docker compose -f docker-compose.deploy.yml down && ^
-        docker compose -f docker-compose.deploy.yml pull && ^
-        docker compose -f docker-compose.deploy.yml up -d"
+        ssh -i "C:\\Jenkins\\key\\key\\myserver.pem" -o StrictHostKeyChecking=no ec2-user@54.81.183.64 "cd ~/votingApp && docker compose -f docker-compose.deploy.yml down && docker compose -f docker-compose.deploy.yml pull && docker compose -f docker-compose.deploy.yml up -d"
         '''
     }
 }
