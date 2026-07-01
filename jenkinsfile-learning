@@ -88,15 +88,13 @@ stage('Run Tests') {
 
        stage('Deploy to EC2') {
     steps {
-        sshagent(credentials: ['ec2-key']) {
-            bat '''
-            ssh -o StrictHostKeyChecking=no ec2-user@54.81.183.64 ^
-            "cd ~/votingApp && ^
-            docker compose -f docker-compose.deploy.yml down && ^
-            docker compose -f docker-compose.deploy.yml pull && ^
-            docker compose -f docker-compose.deploy.yml up -d"
-            '''
-        }
+        bat '''
+        ssh -i "C:\\Users\\YOUR_USERNAME\\.ssh\\ec2.pem" -o StrictHostKeyChecking=no ec2-user@54.81.183.64 ^
+        "cd ~/votingApp && ^
+        docker compose -f docker-compose.deploy.yml down && ^
+        docker compose -f docker-compose.deploy.yml pull && ^
+        docker compose -f docker-compose.deploy.yml up -d"
+        '''
     }
 }
 
