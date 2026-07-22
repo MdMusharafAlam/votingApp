@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        DOCKER_USER = 'rishabhraj7'
-        K8S_NAMESPACE = 'default'
-    }
+    IMAGE_TAG = "${BUILD_NUMBER}"
+    DOCKER_USER = '8787490748'
+    K8S_NAMESPACE = 'default'
+}
 
     stages {
         stage('Checkout') {
@@ -27,7 +27,7 @@ pipeline {
 
         stage('Push Images to DockerHub') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-creds', url: '']) {
+                withDockerRegistry([credentialsId: 'voterapp_credentials', url: ''])  {
                     script {
                         def services = ['vote', 'result', 'worker', 'seed-data']
                         for (svc in services) {
