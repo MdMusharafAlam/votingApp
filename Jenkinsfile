@@ -27,13 +27,25 @@ pipeline {
 
         stage('Push Images to DockerHub') {
     steps {
-        withDockerRegistry([credentialsId: 'voterapp_credentials', url: '']) {
+        withCredentials([usernamePassword(
+            credentialsId: 'voterapp_credentials',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
+
+            bat '''
+                echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+            '''
+
             script {
                 def services = ['vote', 'result', 'worker', 'seed-data']
+
                 for (svc in services) {
                     bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
                 }
             }
+
+            bat 'docker logout'
         }
     }
 }
