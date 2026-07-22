@@ -25,18 +25,35 @@ pipeline {
             }
         }
 
-        stage('Push Images to DockerHub') {
-            steps {
-                withDockerRegistry([credentialsId: 'voterapp_credentials', url: ''])  {
-                    script {
-                        def services = ['vote', 'result', 'worker', 'seed-data']
-                        for (svc in services) {
-                            bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
-                        }
-                    }
+       stage('Push Images to DockerHub') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'voterapp_credentials',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
+            stage('Push Images to DockerHub') {
+    steps {
+        script {
+            docker.withRegistry('https://index.docker.io/v1/', 'voterapp_credentials') {
+                def services = ['vote', 'result', 'worker', 'seed-data']
+                for (svc in services) {
+                    bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
                 }
             }
         }
+    }
+}
+            script {
+                def services = ['vote', 'result', 'worker', 'seed-data']
+                for (svc in services) {
+                    bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
+                }
+            }
+            bat 'docker logout'
+        }
+    }
+}
 
         stage('Deploy to AKS') {
             steps {
