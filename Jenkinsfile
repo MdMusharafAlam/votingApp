@@ -28,7 +28,7 @@ pipeline {
         stage('Push Images to DockerHub') {
     steps {
         withCredentials([usernamePassword(
-            credentialsId: 'voterapp_credentials1',
+            credentialsId: 'voterApp',
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
         )]) {
