@@ -26,45 +26,44 @@ pipeline {
         }
 
         stage('Push Images to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    // NOTE: No space between %DOCKER_PASSWORD% and |
-                    bat 'echo %DOCKER_PASSWORD%| docker login -u %DOCKER_USERNAME% --password-stdin'
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
 
-                    script {
-                        def services = ['vote', 'result', 'worker', 'seed-data']
-                        for (svc in services) {
-                            bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
-                        }
-                    }
+            bat '''
+                echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+            '''
 
-                    bat 'docker logout'
+            script {
+                def services = ['vote', 'result', 'worker', 'seed-data']
+                for (svc in services) {
+                    bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
                 }
             }
+
+            bat 'docker logout'
         }
+    }
+}
 
         stage('Deploy to AKS') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-                    // Set KUBECONFIG env variable so kubectl uses the credentials file
-                    withEnv(["KUBECONFIG=${KUBECONFIG_FILE}"]) {
-                        bat 'echo 🔄 Applying all Kubernetes manifests...'
-                        bat 'kubectl apply -f k8s-specifications\\'
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    bat 'echo 🔄 Applying all Kubernetes manifests...'
+                    bat 'kubectl apply -f k8s-specifications\\'
 
-                        bat 'echo 🔄 Updating images for deployments...'
-                        bat 'kubectl set image deployment/vote vote=%DOCKER_USER%/vote:%IMAGE_TAG% -n %K8S_NAMESPACE%'
-                        bat 'kubectl set image deployment/result result=%DOCKER_USER%/result:%IMAGE_TAG% -n %K8S_NAMESPACE%'
-                        bat 'kubectl set image deployment/worker worker=%DOCKER_USER%/worker:%IMAGE_TAG% -n %K8S_NAMESPACE%'
+                    bat 'echo 🔄 Updating images for deployments...'
+                    bat "kubectl set image deployment/vote vote=%DOCKER_USER%/vote:%IMAGE_TAG% -n %K8S_NAMESPACE%"
+                    bat "kubectl set image deployment/result result=%DOCKER_USER%/result:%IMAGE_TAG% -n %K8S_NAMESPACE%"
+                    bat "kubectl set image deployment/worker worker=%DOCKER_USER%/worker:%IMAGE_TAG% -n %K8S_NAMESPACE%"
 
-                        bat 'echo 🔍 Checking rollout status...'
-                        bat 'kubectl rollout status deployment/vote -n %K8S_NAMESPACE% --timeout=60s'
-                        bat 'kubectl rollout status deployment/result -n %K8S_NAMESPACE% --timeout=60s'
-                        bat 'kubectl rollout status deployment/worker -n %K8S_NAMESPACE% --timeout=60s'
-                    }
+                    bat 'echo 🔍 Checking rollout status...'
+                    bat "kubectl rollout status deployment/vote -n %K8S_NAMESPACE% --timeout=60s"
+                    bat "kubectl rollout status deployment/result -n %K8S_NAMESPACE% --timeout=60s"
+                    bat "kubectl rollout status deployment/worker -n %K8S_NAMESPACE% --timeout=60s"
                 }
             }
         }
