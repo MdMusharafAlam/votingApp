@@ -28,7 +28,7 @@ pipeline {
         stage('Push Images to DockerHub') {
     steps {
         withCredentials([usernamePassword(
-            credentialsId: 'voterapp_credentials',
+            credentialsId: 'voterapp_credentials1',
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
         )]) {
@@ -39,7 +39,6 @@ pipeline {
 
             script {
                 def services = ['vote', 'result', 'worker', 'seed-data']
-
                 for (svc in services) {
                     bat "docker push %DOCKER_USER%/${svc}:%IMAGE_TAG%"
                 }
