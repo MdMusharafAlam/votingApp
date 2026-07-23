@@ -19,7 +19,7 @@ spec:
         operator: "Exists"
         effect: "NoSchedule"
       containers:
-      - image: rishabhraj7/result:latest
+      - image: 8787490748/result:9
         name: result
         ports:
         - containerPort: 80
